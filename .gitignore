@@ -1,0 +1,6 @@
+src/user.txt
+src/backup.txt
+src/test*
+out/production/JavaFinal/user.txt
+out/production/JavaFinal/backup.txt
+out/production/JavaFinal/test*
