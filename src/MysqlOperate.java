@@ -30,7 +30,7 @@ public class MysqlOperate {
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         MysqlOperate operate = new MysqlOperate();
-        operate.inquire("id", "1", 5);
+        System.out.println(operate.verify_admin("misaka"));
     }
 
     private void mysql_init() throws NoSuchAlgorithmException {
@@ -84,7 +84,7 @@ public class MysqlOperate {
         }
     }
 
-    private boolean check_user_exist(String uname) {
+    public boolean check_user_exist(String uname) {
         /*
          * 如果check(statement)返回true则说明该uname不存在
          */
@@ -167,13 +167,15 @@ public class MysqlOperate {
         }
     }
 
-    public void update_password(String uname, String upwd) throws NoSuchAlgorithmException {
-        String query = "UPDATE user SET upwd = ? WHERE uname = ?";
-        upwd = MD5SUM(upwd);
+    public void update(String column_name, String data, String id) throws NoSuchAlgorithmException {
+        String query = "UPDATE user SET " + column_name + " = ? WHERE id = ?";
+        if (Objects.equals(column_name, "upwd")) {
+            data = MD5SUM(data);
+        }
         try {
             PreparedStatement statement = connection.prepareStatement(query);
-            statement.setString(1, upwd);
-            statement.setString(2, uname);
+            statement.setString(1, data);
+            statement.setString(2, id);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -203,6 +205,48 @@ public class MysqlOperate {
             System.exit(-1);
         }
         return Objects.equals(upwd_query_result, upwd);
+    }
+
+    public boolean verify_admin(String uname) {
+        String query = "SELECT admin FROM user WHERE uname = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, uname);
+            ResultSet resultset = statement.executeQuery();
+            boolean result = resultset.next();
+            if (result) {
+                return resultset.getBoolean(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("SQLQuery Error");
+            System.exit(-1);
+        }
+        return false;
+    }
+
+    public String[] get_user_information(String column_name, String data) {
+        String query = "SELECT id,uname,major,upwd FROM user WHERE " + column_name + " = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, data);
+            ResultSet resultset = statement.executeQuery();
+            boolean result = resultset.next();
+            String[] information = new String[4];
+            while (result) {
+                information[0] = resultset.getString(1);
+                information[1] = resultset.getString(2);
+                information[2] = resultset.getString(3);
+                information[3] = resultset.getString(4);
+                result = resultset.next();
+            }
+            return information;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("SQLQuery Error");
+            System.exit(-1);
+        }
+        return null;
     }
 
     public void backup_database() {
