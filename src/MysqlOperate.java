@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class MysqlOperate {
@@ -30,7 +31,7 @@ public class MysqlOperate {
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         MysqlOperate operate = new MysqlOperate();
-        System.out.println(operate.verify_admin("misaka"));
+        operate.inquire("uname", "骆");
     }
 
     private void mysql_init() throws NoSuchAlgorithmException {
@@ -145,26 +146,26 @@ public class MysqlOperate {
         }
     }
 
-    public void inquire(String column_name, String data, int limit) {
-        String query = "SELECT id,uname,major FROM user WHERE " + column_name + " LIKE ? LIMIT ?";
+    public ArrayList<String[]> inquire(String column_name, String data) {
+//        String query = "SELECT id,uname,major FROM user WHERE " + column_name + " LIKE ? LIMIT ?";
+        String query = "SELECT id,uname,major FROM user WHERE " + column_name + " LIKE ?";
         try {
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, "%" + data + "%");
-            statement.setInt(2, limit);
+            ArrayList<String[]> information = new ArrayList<>();
             ResultSet resultset = statement.executeQuery();
             boolean result = resultset.next();
             while (result) {
-                String id = resultset.getString(1);
-                String uname = resultset.getString(2);
-                String major = resultset.getString(3);
-//                System.out.println(id + ' ' + uname + ' ' + major);
+                information.add(new String[]{resultset.getString(1),resultset.getString(2),resultset.getString(3)});
                 result = resultset.next();
             }
+            return information;
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("SQLQuery Error");
             System.exit(-1);
         }
+        return null;
     }
 
     public void update(String column_name, String data, String id) throws NoSuchAlgorithmException {

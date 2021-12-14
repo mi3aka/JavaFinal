@@ -2,7 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -43,7 +46,7 @@ public class FrontEnd {
     /*
      * 普通用户更新个人信息
      */
-    private final JPanel user_manager_panel1 = new JPanel();
+    private final JPanel user_manager_panel_update_information = new JPanel();
     private final JPanel user_information = new JPanel();
     private final JLabel user_id_label = new JLabel("ID:", JLabel.CENTER);
     private final JLabel user_show_id_label = new JLabel("", JLabel.CENTER);
@@ -57,7 +60,7 @@ public class FrontEnd {
     /*
      * 普通用户修改密码
      */
-    private final JPanel user_manager_panel2 = new JPanel();
+    private final JPanel user_manager_panel_update_password = new JPanel();
     private final JPanel user_update_password = new JPanel();
     private final JLabel user_type_old_password_label = new JLabel("原密码:", JLabel.CENTER);
     private final JPasswordField user_type_old_password_field = new JPasswordField();
@@ -68,11 +71,28 @@ public class FrontEnd {
     private final JPanel user_password_button_field = new JPanel();
     private final JButton update_password_button = new JButton("修改");
     private final JButton update_password_exit_button = new JButton("退出");
-
-
+    /*
+     * 管理员管理界面
+     */
     private final JFrame admin_manager_frame = new JFrame("AdminManager");
-    private final MysqlOperate operate;
+    private final JTabbedPane admin_manager_tab_panel = new JTabbedPane();
+    /*
+     * 管理员对用户进行查询
+     */
+    private final JPanel admin_manager_panel1 = new JPanel();
+    private final JLabel admin_manager_column_name_combobox_label = new JLabel("查询选项:", JLabel.CENTER);
+    private final JComboBox<String> admin_manager_column_name_combobox = new JComboBox<>();//下拉框
+    private final JLabel admin_manager_inquire_field_label = new JLabel("查询内容:", JLabel.CENTER);
+    private final JTextField admin_manager_inquire_field = new JTextField(30);//查询输入框
+    private final JButton admin_manager_inquire_button = new JButton("查询");//查询按钮
 
+    /*
+     * 管理员对用户进行管理
+     */
+    private final JPanel admin_manager_panel2 = new JPanel();
+
+
+    private final MysqlOperate operate;
 
     private String username;
 
@@ -156,11 +176,12 @@ public class FrontEnd {
                         if (!Objects.equals(uname, "") && !upwd.equals("")) {
                             try {
                                 if (operate.verify_user(uname, upwd)) {
+                                    login_register_frame.dispose();
                                     if (operate.verify_admin(uname)) {
-                                        JOptionPane.showMessageDialog(login_register_frame, "成功登录");
+//                                        JOptionPane.showMessageDialog(login_register_frame, "成功登录");
+                                        draw_admin_manager_interface();
                                     } else {
                                         username = uname;
-                                        login_register_frame.dispose();
                                         draw_user_manager_interface();
                                     }
                                 } else {
@@ -242,20 +263,19 @@ public class FrontEnd {
         login_register_frame.setResizable(false);
     }
 
-
     private void draw_user_manager_interface() {
         /*
          * 普通用户个人信息管理窗体绘制
          */
         user_manager_tab_panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));//与窗体的距离
-        user_manager_tab_panel.add("个人信息", user_manager_panel1);
-        user_manager_tab_panel.add("修改密码", user_manager_panel2);
+        user_manager_tab_panel.add("个人信息", user_manager_panel_update_information);
+        user_manager_tab_panel.add("修改密码", user_manager_panel_update_password);
         String[] information = operate.get_user_information("uname", username);
         /*
          * 个人信息窗体设置
          */
-        user_manager_panel1.setBorder(BorderFactory.createEmptyBorder(30, 20, 0, 20));//与窗体的距离
-        user_manager_panel1.setLayout(new GridLayout(2, 1, 5, 50));//2行1列
+        user_manager_panel_update_information.setBorder(BorderFactory.createEmptyBorder(30, 20, 0, 20));//与窗体的距离
+        user_manager_panel_update_information.setLayout(new GridLayout(2, 1, 5, 50));//2行1列
         user_information.setLayout(new GridLayout(3, 2, 5, 5));//3行2列
         user_information.add(user_id_label);
         user_show_id_label.setText(information[0]);
@@ -269,13 +289,13 @@ public class FrontEnd {
         user_information_button_field.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 5));
         user_information_button_field.add(update_information_button);
         user_information_button_field.add(update_information_exit_button);
-        user_manager_panel1.add(user_information);
-        user_manager_panel1.add(user_information_button_field);
+        user_manager_panel_update_information.add(user_information);
+        user_manager_panel_update_information.add(user_information_button_field);
         /*
          * 密码修改窗体设置
          */
-        user_manager_panel2.setBorder(BorderFactory.createEmptyBorder(30, 20, 0, 20));//与窗体的距离
-        user_manager_panel2.setLayout(new GridLayout(2, 1, 5, 50));//2行1列
+        user_manager_panel_update_password.setBorder(BorderFactory.createEmptyBorder(30, 20, 0, 20));//与窗体的距离
+        user_manager_panel_update_password.setLayout(new GridLayout(2, 1, 5, 50));//2行1列
         user_update_password.setLayout(new GridLayout(3, 2, 5, 5));//3行2列
         user_update_password.add(user_type_old_password_label);
         user_update_password.add(user_type_old_password_field);
@@ -286,8 +306,8 @@ public class FrontEnd {
         user_password_button_field.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 5));
         user_password_button_field.add(update_password_button);
         user_password_button_field.add(update_password_exit_button);
-        user_manager_panel2.add(user_update_password);
-        user_manager_panel2.add(user_password_button_field);
+        user_manager_panel_update_password.add(user_update_password);
+        user_manager_panel_update_password.add(user_password_button_field);
 
         if (Arrays.toString(update_information_button.getActionListeners()).equals("[]")) {
             update_information_button.addActionListener(new ActionListener() {//添加按钮监听事件
@@ -322,6 +342,7 @@ public class FrontEnd {
                 }
             });
         }
+
         if (Arrays.toString(update_password_button.getActionListeners()).equals("[]")) {
             update_password_button.addActionListener(new ActionListener() {//添加按钮监听事件
                 /*
@@ -362,6 +383,7 @@ public class FrontEnd {
                 }
             });
         }
+
         if (Arrays.toString(update_information_exit_button.getActionListeners()).equals("[]")) {
             update_information_exit_button.addActionListener(new ActionListener() {//添加按钮监听事件
                 @Override
@@ -370,6 +392,7 @@ public class FrontEnd {
                 }
             });
         }
+
         if (Arrays.toString(update_password_exit_button.getActionListeners()).equals("[]")) {
             update_password_exit_button.addActionListener(new ActionListener() {//添加按钮监听事件
                 @Override
@@ -386,5 +409,72 @@ public class FrontEnd {
         user_manager_frame.setLocationRelativeTo(null);
         user_manager_frame.setVisible(true);
         user_manager_frame.setResizable(false);
+    }
+
+    private void draw_admin_manager_interface() {
+
+        admin_manager_tab_panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));//与窗体的距离
+        admin_manager_tab_panel.add("用户查询", admin_manager_panel1);
+        admin_manager_tab_panel.add("用户管理", admin_manager_panel2);
+
+
+        admin_manager_column_name_combobox.addItem("id");
+        admin_manager_column_name_combobox.addItem("uname");
+        admin_manager_column_name_combobox.addItem("major");
+        admin_manager_panel1.add(admin_manager_column_name_combobox_label);
+        admin_manager_panel1.add(admin_manager_column_name_combobox);
+        admin_manager_panel1.add(admin_manager_inquire_field_label);
+        admin_manager_panel1.add(admin_manager_inquire_field);
+        admin_manager_panel1.add(admin_manager_inquire_button);
+
+
+        if (Arrays.toString(admin_manager_inquire_button.getActionListeners()).equals("[]")) {
+            admin_manager_inquire_button.addActionListener(new ActionListener() {//添加按钮监听事件
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    String data = admin_manager_inquire_field.getText();
+                    if (!Objects.equals(data, "")) {
+                        ArrayList<String[]> information = operate.inquire((String) admin_manager_column_name_combobox.getSelectedItem(), data);
+                        if (information.size() != 0) {
+                            String[] column_name = new String[]{"ID", "用户名", "专业"};
+                            String[][] column_data = information.toArray(new String[information.size()][]);
+                            for (int i = 0; i < admin_manager_panel1.getComponents().length; ++i) {
+                                if (admin_manager_panel1.getComponents()[i].getClass().toString().equals("class javax.swing.JScrollPane")) {
+                                    admin_manager_panel1.remove(i);
+                                }
+                            }
+                            NewJTable jtable = new NewJTable(column_data, column_name);
+                            jtable.addMouseListener(new MouseAdapter() {
+                                public void mousePressed(MouseEvent mouseEvent) {
+                                    JTable table =(JTable) mouseEvent.getSource();
+                                    if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1) {
+                                        System.out.println(table.getSelectedRow());
+                                    }
+                                }
+                            });
+                            JScrollPane scrollPane = new JScrollPane(table);
+                            admin_manager_panel1.add(scrollPane, BorderLayout.CENTER);
+                        } else {
+                            for (int i = 0; i < admin_manager_panel1.getComponents().length; ++i) {
+                                if (admin_manager_panel1.getComponents()[i].getClass().toString().equals("class javax.swing.JScrollPane")) {
+                                    admin_manager_panel1.remove(i);
+                                }
+                            }
+                        }
+                        admin_manager_panel1.validate();//重构界面
+                        admin_manager_panel1.repaint();//重新绘制
+                    }
+                }
+            });
+        }
+
+
+        admin_manager_frame.add(admin_manager_tab_panel);
+
+        admin_manager_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        admin_manager_frame.setSize(800, 600);
+        admin_manager_frame.setLocationRelativeTo(null);
+        admin_manager_frame.setVisible(true);
+        admin_manager_frame.setResizable(false);
     }
 }
