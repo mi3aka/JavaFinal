@@ -108,6 +108,15 @@ public class FrontEnd {
      * 管理员删除用户
      */
     private final JPanel admin_delete_user_panel = new JPanel();
+    private final JPanel admin_delete_user_information_panel = new JPanel();
+    private final JLabel admin_delete_user_id_label = new JLabel("ID:", JLabel.CENTER);
+    private final JLabel admin_delete_user_show_id_label = new JLabel("", JLabel.CENTER);
+    private final JLabel admin_delete_user_name_label = new JLabel("用户名:", JLabel.CENTER);
+    private final JLabel admin_delete_user_show_name_label = new JLabel("", JLabel.CENTER);
+    private final JLabel admin_delete_user_major_label = new JLabel("专业:", JLabel.CENTER);
+    private final JLabel admin_delete_user_show_major_label = new JLabel("", JLabel.CENTER);
+    private final JPanel admin_delete_user_button_field = new JPanel();
+    private final JButton admin_delete_user_button = new JButton("删除该用户");
     /*
      * 管理员新增用户
      */
@@ -135,8 +144,9 @@ public class FrontEnd {
     private final JLabel admin_backup_user_pathname_label = new JLabel("导出文件名:", JLabel.CENTER);
     private final JTextField admin_backup_user_pathname_field = new JTextField(30);
     private final JButton admin_backup_user_button = new JButton("导出");//查询按钮
-
-
+    /*
+     * 修改管理员密码
+     */
     private final JPanel admin_manager_panel_update_admin_password = new JPanel();
     private final JPanel admin_update_password = new JPanel();
     private final JLabel admin_type_old_password_label = new JLabel("原密码:", JLabel.CENTER);
@@ -512,11 +522,10 @@ public class FrontEnd {
                                 public void mousePressed(MouseEvent mouseEvent) {
                                     JTable table = (JTable) mouseEvent.getSource();
                                     if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1) {
-                                        if(operate.verify_admin( (String) table.getValueAt(table.getSelectedRow(), 1))){
+                                        if (operate.verify_admin((String) table.getValueAt(table.getSelectedRow(), 1))) {
                                             JOptionPane.showMessageDialog(admin_manager_frame, "无法对管理员级别用户进行修改");
-                                        }
-                                        else{
-                                            draw_admin_modify_user_information_panel((String) table.getValueAt(table.getSelectedRow(), 0), (String) table.getValueAt(table.getSelectedRow(), 1), (String) table.getValueAt(table.getSelectedRow(), 2));
+                                        } else {
+                                            draw_admin_modify_delete_user_information_panel((String) table.getValueAt(table.getSelectedRow(), 0), (String) table.getValueAt(table.getSelectedRow(), 1), (String) table.getValueAt(table.getSelectedRow(), 2));
                                             admin_manager_tab_panel.setSelectedComponent(admin_manager_user_tab_panel);//切换到用户管理
                                             admin_manager_user_tab_panel.setSelectedComponent(admin_modify_user_information_panel);
                                         }
@@ -566,7 +575,28 @@ public class FrontEnd {
         }
 
 
-        admin_manager_user_tab_panel.add("删除用户", admin_delete_user_panel);//todo
+        admin_manager_user_tab_panel.add("删除用户", admin_delete_user_panel);
+        admin_delete_user_panel.setBorder(BorderFactory.createEmptyBorder(50, 200, 100, 200));
+        admin_delete_user_panel.setLayout(new GridLayout(2, 1, 0, 0));//2行1列
+        admin_delete_user_information_panel.setLayout(new GridLayout(3, 2, 5, 5));//2行1列
+        admin_delete_user_information_panel.add(admin_delete_user_id_label);
+        admin_delete_user_information_panel.add(admin_delete_user_show_id_label);
+        admin_delete_user_information_panel.add(admin_delete_user_name_label);
+        admin_delete_user_information_panel.add(admin_delete_user_show_name_label);
+        admin_delete_user_information_panel.add(admin_delete_user_major_label);
+        admin_delete_user_information_panel.add(admin_delete_user_show_major_label);
+        admin_delete_user_button_field.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        admin_delete_user_button_field.add(admin_delete_user_button);
+        admin_delete_user_panel.add(admin_delete_user_information_panel);
+        admin_delete_user_panel.add(admin_delete_user_button_field);
+        if (Arrays.toString(admin_delete_user_button.getActionListeners()).equals("[]")) {
+            admin_delete_user_button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {//todo
+
+                }
+            });
+        }
 
 
         admin_manager_user_tab_panel.add("新增用户", admin_add_user_panel);
@@ -673,10 +703,14 @@ public class FrontEnd {
     }
 
 
-    private void draw_admin_modify_user_information_panel(String id, String uname, String major) {
+    private void draw_admin_modify_delete_user_information_panel(String id, String uname, String major) {
         admin_modify_user_show_id_label.setText(id);
         admin_modify_update_user_name_field.setText(uname);
         admin_modify_update_user_major_field.setText(major);
+
+        admin_delete_user_show_id_label.setText(id);
+        admin_delete_user_show_name_label.setText(uname);
+        admin_delete_user_show_major_label.setText(major);
 
         admin_manager_user_tab_panel.validate();//重构界面
         admin_manager_user_tab_panel.repaint();//重新绘制
