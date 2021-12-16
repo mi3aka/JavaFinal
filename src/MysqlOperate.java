@@ -156,7 +156,7 @@ public class MysqlOperate {
             ResultSet resultset = statement.executeQuery();
             boolean result = resultset.next();
             while (result) {
-                information.add(new String[]{resultset.getString(1),resultset.getString(2),resultset.getString(3)});
+                information.add(new String[]{resultset.getString(1), resultset.getString(2), resultset.getString(3)});
                 result = resultset.next();
             }
             return information;
@@ -250,13 +250,13 @@ public class MysqlOperate {
         return null;
     }
 
-    public void backup_database() {
+    public void backup_database(String pathname) {
         String query = "SELECT * FROM user";
         try {
             PreparedStatement statement = connection.prepareStatement(query);
             ResultSet resultset = statement.executeQuery();
             boolean result = resultset.next();
-            File file = new File("backup.txt");
+            File file = new File(pathname);
             if (!file.exists()) {
                 file.createNewFile();
             }

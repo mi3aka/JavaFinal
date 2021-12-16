@@ -4,3 +4,4 @@ src/test*
 out/production/JavaFinal/user.txt
 out/production/JavaFinal/backup.txt
 out/production/JavaFinal/test*
+backup.txt
