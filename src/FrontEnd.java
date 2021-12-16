@@ -91,7 +91,6 @@ public class FrontEnd {
      * 管理员对用户信息进行编辑
      */
     private final JTabbedPane admin_manager_user_tab_panel = new JTabbedPane();
-    private final JLabel admin_modify_user_label = new JLabel("若文本框留空则对应的值保持不变", JLabel.CENTER);
     private final JPanel admin_modify_user_information_panel = new JPanel();
     private final JPanel admin_modify_user_information = new JPanel();
     private final JLabel admin_modify_user_id_label = new JLabel("ID:", JLabel.CENTER);
@@ -100,7 +99,7 @@ public class FrontEnd {
     private final JTextField admin_modify_update_user_name_field = new JTextField();
     private final JLabel admin_modify_user_major_label = new JLabel("专业:", JLabel.CENTER);
     private final JTextField admin_modify_update_user_major_field = new JTextField();
-    private final JLabel admin_modify_user_password_label = new JLabel("密码:", JLabel.CENTER);
+    private final JLabel admin_modify_user_password_label = new JLabel("密码(留空则不变):", JLabel.CENTER);
     private final JPasswordField admin_modify_update_user_password_field = new JPasswordField();
     private final JPanel admin_modify_user_information_button_field = new JPanel();
     private final JButton admin_modify_update_information_button = new JButton("更新");
@@ -213,7 +212,7 @@ public class FrontEnd {
         if (Arrays.toString(update_password_button.getActionListeners()).equals("[]")) {
             update_password_button.addActionListener(new ActionListener() {//添加按钮监听事件
                 /*
-                 * 修改用户密码
+                 * 修改用户/管理员密码
                  */
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
@@ -252,7 +251,35 @@ public class FrontEnd {
         }
     }
 
+    private boolean check_username_available_while_updating_information(String old_username, String new_username, JFrame frame) {
+        /*
+         * 检查用户名可用性
+         */
+        if (!new_username.equals(old_username) && !operate.check_user_exist(new_username)) {
+            JOptionPane.showMessageDialog(frame, "用户名重复");
+            return true;
+        }
+        return false;
+    }
+
+    private void draw_admin_modify_delete_user_information_panel(String id, String uname, String major) {
+        admin_modify_user_show_id_label.setText(id);
+        admin_modify_update_user_name_field.setText(uname);
+        admin_modify_update_user_major_field.setText(major);
+
+        admin_delete_user_show_id_label.setText(id);
+        admin_delete_user_show_name_label.setText(uname);
+        admin_delete_user_show_major_label.setText(major);
+        admin_modify_update_user_password_field.setText("");
+
+        admin_manager_user_tab_panel.validate();//重构界面
+        admin_manager_user_tab_panel.repaint();//重新绘制
+    }
+
     private void draw_login_register_interface() {
+        /*
+         * 绘制登录/注册页面
+         */
         login_input_field_init();
         login_register_container.setLayout(new GridLayout(3, 1, 0, 5));//3行1列
         login_register_container.add(login_title);
@@ -325,12 +352,12 @@ public class FrontEnd {
                         login_register_container.add(login_register_button_field);
                         login_register_container.validate();//重构界面
                         login_register_container.repaint();//重新绘制
-                    } else {//todo 注册操作
+                    } else {
                         String uname = username_field.getText();
                         String upwd = String.valueOf(password_field.getPassword());
                         String major = major_field.getText();
                         if (!Objects.equals(uname, "") && !upwd.equals("") && !Objects.equals(major, "")) {
-                            if (uname.length() >= 5 && upwd.length() >= 5 && major.length() >= 5) {
+                            if (upwd.length() >= 5) {
                                 try {
                                     if (operate.add_user(uname, upwd, major, false)) {
                                         JOptionPane.showMessageDialog(login_register_frame, "成功注册");
@@ -349,7 +376,7 @@ public class FrontEnd {
                                     e.printStackTrace();
                                 }
                             } else {
-                                JOptionPane.showMessageDialog(login_register_frame, "用户名/密码/专业字段长度需不小于5");
+                                JOptionPane.showMessageDialog(login_register_frame, "密码长度需不小于5");
                             }
                         }
                     }
@@ -428,26 +455,16 @@ public class FrontEnd {
                 public void actionPerformed(ActionEvent actionEvent) {
                     String old_username = operate.get_user_information("id", information[0])[1];
                     String new_username = update_user_name_field.getText();
-                    String major = update_user_major_field.getText();
-                    if (Objects.equals(old_username, new_username)) {
-                        try {
-                            operate.update("major", major, information[0]);
-                            JOptionPane.showMessageDialog(user_manager_frame, "成功修改专业");
-                        } catch (NoSuchAlgorithmException e) {
-                            e.printStackTrace();
+                    String new_major = update_user_major_field.getText();
+                    try {
+                        if (!Objects.equals(new_username, "") && !Objects.equals(new_major, "")) {
+                            if (check_username_available_while_updating_information(old_username, new_username, user_manager_frame)) return;
+                            operate.update("uname", new_username, admin_modify_user_show_id_label.getText());
+                            operate.update("major", new_major, admin_modify_user_show_id_label.getText());
+                            JOptionPane.showMessageDialog(user_manager_frame, "成功修改个人信息");
                         }
-                    } else {
-                        if (operate.check_user_exist(new_username)) {
-                            try {
-                                operate.update("uname", new_username, information[0]);
-                                operate.update("major", major, information[0]);
-                                JOptionPane.showMessageDialog(user_manager_frame, "成功修改个人信息");
-                            } catch (NoSuchAlgorithmException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            JOptionPane.showMessageDialog(user_manager_frame, "用户名重复");
-                        }
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
                     }
                 }
             });
@@ -481,14 +498,14 @@ public class FrontEnd {
         user_manager_frame.setResizable(false);
     }
 
-    private void draw_admin_manager_interface() {
 
+    private void draw_admin_manager_interface() {
         String[] information = operate.get_user_information("uname", username);
 
         admin_manager_tab_panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));//与窗体的距离
         admin_manager_tab_panel.add("用户查询", admin_manager_panel_inquire_user);
         admin_manager_tab_panel.add("用户管理", admin_manager_user_tab_panel);
-        admin_manager_tab_panel.add("修改密码", admin_manager_panel_update_admin_password);
+        admin_manager_tab_panel.add("修改管理员密码", admin_manager_panel_update_admin_password);
 
 
         admin_manager_column_name_combobox.addItem("ID");
@@ -568,8 +585,44 @@ public class FrontEnd {
         if (Arrays.toString(admin_modify_update_information_button.getActionListeners()).equals("[]")) {
             admin_modify_update_information_button.addActionListener(new ActionListener() {
                 @Override
-                public void actionPerformed(ActionEvent actionEvent) {//todo
-
+                public void actionPerformed(ActionEvent actionEvent) {
+                    String old_username = operate.get_user_information("id", admin_modify_user_show_id_label.getText())[1];
+                    String new_username = admin_modify_update_user_name_field.getText();
+                    String old_major = operate.get_user_information("id", admin_modify_user_show_id_label.getText())[2];
+                    String new_major = admin_modify_update_user_major_field.getText();
+                    String new_password = String.valueOf(admin_modify_update_user_password_field.getPassword());
+                    if (Objects.equals(old_username, new_username) && Objects.equals(old_major, new_major) && new_password.equals("")) {
+                        return;
+                    }
+                    try {
+                        if (!Objects.equals(new_username, "") && !Objects.equals(new_major, "")) {
+                            if (new_password.equals("")) {
+                                if (check_username_available_while_updating_information(old_username, new_username, admin_manager_frame)) return;
+                            } else {
+                                if (new_password.length() >= 5) {
+                                    if (!new_username.equals(old_username) && !operate.check_user_exist(new_username)) {
+                                        JOptionPane.showMessageDialog(admin_manager_frame, "用户名重复");
+                                        return;
+                                    }
+                                } else {
+                                    JOptionPane.showMessageDialog(admin_manager_frame, "密码字段长度需不小于5");
+                                    return;
+                                }
+                                operate.update("upwd", new_password, admin_modify_user_show_id_label.getText());
+                            }
+                            operate.update("uname", new_username, admin_modify_user_show_id_label.getText());
+                            operate.update("major", new_major, admin_modify_user_show_id_label.getText());
+                            draw_admin_modify_delete_user_information_panel("", "", "");
+                            for (int i = 0; i < admin_manager_panel_inquire_user.getComponents().length; ++i) {
+                                if (admin_manager_panel_inquire_user.getComponents()[i].getClass().toString().equals("class javax.swing.JScrollPane")) {
+                                    admin_manager_panel_inquire_user.remove(i);
+                                }
+                            }
+                            JOptionPane.showMessageDialog(admin_manager_frame, "成功更新信息");
+                        }
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         }
@@ -592,8 +645,30 @@ public class FrontEnd {
         if (Arrays.toString(admin_delete_user_button.getActionListeners()).equals("[]")) {
             admin_delete_user_button.addActionListener(new ActionListener() {
                 @Override
-                public void actionPerformed(ActionEvent actionEvent) {//todo
-
+                public void actionPerformed(ActionEvent actionEvent) {
+                    String uname = admin_delete_user_show_name_label.getText();
+                    String admin_password = JOptionPane.showInputDialog(admin_manager_frame, "请输入管理员密码");
+                    if (admin_password != null) {
+                        try {
+                            if (operate.verify_user(information[1], admin_password)) {
+                                if (operate.delete_user(uname)) {
+                                    draw_admin_modify_delete_user_information_panel("", "", "");
+                                    for (int i = 0; i < admin_manager_panel_inquire_user.getComponents().length; ++i) {
+                                        if (admin_manager_panel_inquire_user.getComponents()[i].getClass().toString().equals("class javax.swing.JScrollPane")) {
+                                            admin_manager_panel_inquire_user.remove(i);
+                                        }
+                                    }
+                                    JOptionPane.showMessageDialog(admin_manager_frame, "成功删除用户");
+                                } else {
+                                    JOptionPane.showMessageDialog(admin_manager_frame, "用户不存在/无法删除");
+                                }
+                            } else {
+                                JOptionPane.showMessageDialog(admin_manager_frame, "管理员密码错误");
+                            }
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             });
         }
@@ -700,19 +775,5 @@ public class FrontEnd {
         admin_manager_frame.setLocationRelativeTo(null);
         admin_manager_frame.setVisible(true);
         admin_manager_frame.setResizable(false);
-    }
-
-
-    private void draw_admin_modify_delete_user_information_panel(String id, String uname, String major) {
-        admin_modify_user_show_id_label.setText(id);
-        admin_modify_update_user_name_field.setText(uname);
-        admin_modify_update_user_major_field.setText(major);
-
-        admin_delete_user_show_id_label.setText(id);
-        admin_delete_user_show_name_label.setText(uname);
-        admin_delete_user_show_major_label.setText(major);
-
-        admin_manager_user_tab_panel.validate();//重构界面
-        admin_manager_user_tab_panel.repaint();//重新绘制
     }
 }
